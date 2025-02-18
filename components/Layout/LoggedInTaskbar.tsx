@@ -15,7 +15,6 @@ const LoggedInTaskbar: React.FC = () => {
   return (
     <nav style={{ display: 'flex', gap: '16px', padding: '16px', background: '#cfffd0' }}>
       <Link href="/view-records">記録閲覧</Link>
-      <Link href="/analyze-records">記録分析</Link>
       <Link href="/create-record">記録作成</Link>
       <Link href="/settings">設定</Link>
       <button onClick={handleLogout}>ログアウト</button>
