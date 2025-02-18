@@ -1,0 +1,18 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    - cron: '00 0 * * *'  # 日本時間の9時 (UTC 00:00)
+
+jobs:
+  keep_alive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send request to keep Supabase active
+        run: |
+          curl -X GET "$SUPABASE_API_URL" \
+          -H "apikey: $SUPABASE_ANON_KEY"
+        env:
+          SUPABASE_API_URL: ${{ secrets.SUPABASE_API_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
