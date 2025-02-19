@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 type CalendarProps = {
   records: Array<{
-    id: number; // 記録のID
+    id: number;
     date: string;
     load: number;
   }>;
@@ -13,21 +13,21 @@ type CalendarProps = {
 const Calendar: React.FC<CalendarProps> = ({ records }) => {
   const router = useRouter();
   const today = new Date();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1); // 現在の月
-  const [currentYear, setCurrentYear] = useState(today.getFullYear()); // 現在の年
+  const [currentMonth, setCurrentMonth] = useState(today.getMonth() + 1);
+  const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
   // 月ごとの日数取得
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month, 0).getDate();
   };
-  
+
   const daysInMonth = getDaysInMonth(currentYear, currentMonth);
-  const firstDayOfMonth = new Date(currentYear, currentMonth - 1, 1).getDay(); // 月の最初の曜日
-  
+  const firstDayOfMonth = new Date(currentYear, currentMonth - 1, 1).getDay();
+
   // 負荷によって色の濃さを変更
   const getLoadColor = (load: number) => {
     const intensity = Math.min(255, 255 - load * 15);
-    return `rgb(255, ${intensity}, ${intensity})`; // 赤の強弱を変える
+    return `rgb(255, ${intensity}, ${intensity})`;
   };
 
   // 日付を YYYY-MM-DD 形式にする
@@ -38,8 +38,8 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
   // カレンダーの日付セルを作成
   const renderCalendarCells = () => {
     const cells = [];
-    
-    // 空白セル (月の開始曜日に合わせる)
+
+    // 空白セル
     for (let i = 0; i < firstDayOfMonth; i++) {
       cells.push(<div key={`empty-${i}`} style={{ width: '40px', height: '40px' }}></div>);
     }
@@ -53,20 +53,15 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
       cells.push(
         <div
           key={dateString}
-          onClick={() => {
-            if (record?.id) {
-              router.push(`/edit-record/${record.id}`);
-            }
-          }}
+          onClick={() => router.push(`/edit-record/${dateString}`)}
           style={{
             width: '40px',
             height: '40px',
-            margin: '4px',
             textAlign: 'center',
             lineHeight: '40px',
             borderRadius: '50%',
             backgroundColor: backgroundColor,
-            cursor: record ? 'pointer' : 'default',
+            cursor: 'pointer',
             fontWeight: 'bold',
           }}
         >
@@ -79,7 +74,17 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
   };
 
   return (
-    <div style={{ textAlign: 'center', background: '#fff', padding: '20px', borderRadius: '10px' }}>
+    <div
+      style={{
+        textAlign: 'center',
+        background: '#fff',
+        padding: '20px',
+        borderRadius: '10px',
+        maxWidth: '320px', // カレンダーの最大幅を制限
+        margin: '0 auto', // 中央配置
+        overflow: 'hidden', // レイアウト崩れ防止
+      }}
+    >
       {/* 月・年選択 */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
         <select
@@ -107,7 +112,13 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
       </div>
 
       {/* カレンダー表示 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px' }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7, minmax(40px, 1fr))', // 7列を等間隔に
+          gap: '5px',
+        }}
+      >
         {/* 曜日ヘッダー */}
         {['日', '月', '火', '水', '木', '金', '土'].map((day) => (
           <div key={day} style={{ fontWeight: 'bold', padding: '5px' }}>
@@ -120,7 +131,13 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
 
       {/* 月間の記録数を表示 */}
       <div style={{ marginTop: '20px', fontWeight: 'bold' }}>
-        <span>月間記録日数: {records.filter((r) => r.date.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`)).length} 日</span>
+        <span>
+          月間記録日数:{' '}
+          {records.filter((r) =>
+            r.date.startsWith(`${currentYear}-${String(currentMonth).padStart(2, '0')}`)
+          ).length}{' '}
+          日
+        </span>
       </div>
     </div>
   );
