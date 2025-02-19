@@ -1,8 +1,8 @@
 // pages/create-record/index.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import LoggedInTaskbar from '../../components/Layout/LoggedInTaskbar';
 import { supabase } from '../../utils/supabaseClient';
-import { useRouter } from 'next/router';
 
 type Category = {
   id: number;
@@ -14,122 +14,71 @@ export default function CreateRecordPage() {
   const router = useRouter();
   const [date, setDate] = useState('');
   const [load, setLoad] = useState<number>(1);
-  const [menuCategoryId, setMenuCategoryId] = useState<number | null>(null);
-  const [count, setCount] = useState<number>(0);
   const [reflection, setReflection] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryIdList, setCategoryIdList] = useState<(number | null)[]>([null]); // 最初は1つのみ
+  const [countList, setCountList] = useState<number[]>([0]); // 最初は1つのみ
 
   useEffect(() => {
-    // セッションをチェックし、カテゴリを取得
+    // 認証チェック & カテゴリ取得
     const checkSessionAndFetchCategories = async () => {
       const {
         data: { session },
         error,
       } = await supabase.auth.getSession();
-
       if (error) {
         console.error('Session fetch error:', error);
         return;
       }
-
       if (!session) {
         router.push('/login');
         return;
       }
-
-      // カテゴリを取得
-      const { data: catData, error: catError } = await supabase
-        .from('categories')
-        .select('*');
-
-      if (catError) {
-        console.error('Categories fetch error:', catError);
-      } else if (catData) {
+      // カテゴリ一覧取得
+      const { data: catData } = await supabase.from('categories').select('*');
+      if (catData) {
         setCategories(catData);
       }
     };
-
     checkSessionAndFetchCategories();
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 入力チェック
-    if (!date) {
-      alert('日付を入力してください');
-      return;
-    }
-
-    if (!menuCategoryId) {
-      alert('練習メニューを選択してください');
-      return;
-    }
-
     const {
       data: { session },
       error,
     } = await supabase.auth.getSession();
 
-    if (error) {
-      alert('エラーが発生しました: ' + error.message);
-      return;
-    }
-
-    if (!session) {
+    if (!session || error) {
+      alert('セッションがありません。ログインしてください。');
       router.push('/login');
       return;
     }
 
-    const { user } = session;
-
-    // 既存データの確認（日付 + ユーザID）
-    const { data: existingRecords, error: fetchError } = await supabase
+    // 既存のデータを削除 (日付+user_id)
+    await supabase
       .from('training_records')
-      .select('id')
-      .eq('user_id', user?.id)
+      .delete()
+      .eq('user_id', session.user?.id)
       .eq('date', date);
 
-    if (fetchError) {
-      console.error('Fetch error:', fetchError);
-      alert('データの確認中にエラーが発生しました');
-      return;
+    // INSERT用オブジェクト作成 (category_id1, count1, ...)
+    const insertData: any = {
+      user_id: session.user.id,
+      date,
+      load,
+      reflection,
+    };
+
+    for (let i = 0; i < 10; i++) {
+      insertData[`category_id${i + 1}`] = categoryIdList[i] ?? null;
+      insertData[`count${i + 1}`] = countList[i] ?? 0;
     }
 
-    if (existingRecords && existingRecords.length > 0) {
-      // 既存データがある場合、削除して新しいデータを登録
-      const confirmUpdate = window.confirm(
-        '既存の記録が見つかりました。上書き（削除して新規登録）しますか？'
-      );
-
-      if (!confirmUpdate) return;
-
-      // 既存データを削除
-      const { error: deleteError } = await supabase
-        .from('training_records')
-        .delete()
-        .eq('user_id', user?.id)
-        .eq('date', date);
-
-      if (deleteError) {
-        alert('削除中にエラーが発生しました: ' + deleteError.message);
-        return;
-      }
-    }
-
-    // 新規登録
-    const { error: insertError } = await supabase
-      .from('training_records')
-      .insert([
-        {
-          user_id: user?.id,
-          date,
-          load,
-          category_id: menuCategoryId,
-          count,
-          reflection,
-        },
-      ]);
+    // 新規挿入
+    const { error: insertError } = await supabase.from('training_records').insert([insertData]);
 
     if (insertError) {
       console.error('Insert error:', insertError);
@@ -140,13 +89,10 @@ export default function CreateRecordPage() {
     }
   };
 
-  // 選択されたメニューの単位を取得
-  const selectedUnit = categories.find((cat) => cat.id === menuCategoryId)?.unit || '';
-
   return (
     <div>
       <LoggedInTaskbar />
-      <main style={{ maxWidth: '400px', margin: '50px auto' }}>
+      <main style={{ maxWidth: 600, margin: '50px auto' }}>
         <h2>記録作成</h2>
         <form onSubmit={handleSubmit}>
           <div>
@@ -159,7 +105,6 @@ export default function CreateRecordPage() {
               style={{ width: '100%', marginBottom: '10px' }}
             />
           </div>
-
           <div>
             <label>練習負荷 (1~10)</label>
             <input
@@ -168,51 +113,83 @@ export default function CreateRecordPage() {
               onChange={(e) => setLoad(Number(e.target.value))}
               min="1"
               max="10"
-              required
               style={{ width: '100%', marginBottom: '10px' }}
             />
           </div>
+          <hr />
 
-          <div>
-            <label>練習メニュー</label>
-            <select
-              value={menuCategoryId ?? ''}
-              onChange={(e) => setMenuCategoryId(Number(e.target.value))}
-              required
-              style={{ width: '100%', marginBottom: '10px' }}
-            >
-              <option value="" disabled>
-                選択してください
-              </option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name} ({cat.unit})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label>回数</label>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-              <input
-                type="number"
-                value={count}
-                onChange={(e) => setCount(Number(e.target.value))}
-                min="0"
-                required
-                style={{ width: '80%', marginRight: '5px' }}
-              />
-              <span>{selectedUnit}</span>
+          {categoryIdList.map((categoryId, index) => (
+            <div key={index} style={{ border: '1px solid #ddd', padding: '10px', marginBottom: '10px' }}>
+              <h4>メニュー {index + 1}</h4>
+              <div>
+                <label>カテゴリ</label>
+                <select
+                  value={categoryId ?? ''}
+                  onChange={(e) => {
+                    const newCategoryIds = [...categoryIdList];
+                    newCategoryIds[index] = e.target.value ? Number(e.target.value) : null;
+                    setCategoryIdList(newCategoryIds);
+                  }}
+                  style={{ width: '100%', marginBottom: '10px' }}
+                >
+                  <option value="">選択してください</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name} ({cat.unit})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label>回数</label>
+                <input
+                  type="number"
+                  value={countList[index]}
+                  onChange={(e) => {
+                    const newCounts = [...countList];
+                    newCounts[index] = Number(e.target.value);
+                    setCountList(newCounts);
+                  }}
+                  style={{ width: '100%', marginBottom: '10px' }}
+                  min="0"
+                />
+              </div>
+              {categoryIdList.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCategoryIdList(categoryIdList.filter((_, i) => i !== index));
+                    setCountList(countList.filter((_, i) => i !== index));
+                  }}
+                  style={{ marginBottom: '10px' }}
+                >
+                  削除
+                </button>
+              )}
             </div>
-          </div>
+          ))}
 
+          {categoryIdList.length < 10 && (
+            <button
+              type="button"
+              onClick={() => {
+                if (categories.length === 0) return;
+                setCategoryIdList([...categoryIdList, categories[0]?.id || null]);
+                setCountList([...countList, 0]);
+              }}
+              style={{ marginBottom: '10px' }}
+            >
+              + 追加
+            </button>
+          )}
+
+          <hr />
           <div>
             <label>反省・メモ</label>
             <textarea
               value={reflection}
               onChange={(e) => setReflection(e.target.value)}
-              style={{ width: '100%', marginBottom: '10px' }}
+              style={{ width: '100%', marginBottom: '10px', height: '100px' }}
             />
           </div>
 
