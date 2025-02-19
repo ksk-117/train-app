@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "StylishFont";
+  src: url("/fonts/stylish.otf") format("opentype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.stylish-text {
+  font-family: "StylishFont", sans-serif;
+}
