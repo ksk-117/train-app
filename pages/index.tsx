@@ -21,19 +21,21 @@ export default function HomePage() {
 
       {/* 背景画像 */}
       <div
-        className="absolute left-0 -z-10 w-full"
+        className="absolute inset-x-0 bottom-0 -z-10 w-full"
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: "100% auto", // 横幅100%、縦横比維持
-          backgroundPosition: "bottom", // 画面下部に配置
+          backgroundSize: "contain", // 画像の横幅をすべて表示
+          backgroundPosition: "bottom", // 画像の下端を画面下に固定
           backgroundRepeat: "no-repeat",
-          height: "calc(100vh - 80px)", // ヘッダー分を差し引く
+          height: "100vh", // 画面の高さを確保し、足りない場合は空白を残す
         }}
       />
 
       {/* メインコンテンツ */}
       <main className="relative mx-auto flex h-[calc(100vh-80px)] max-w-5xl flex-col items-start justify-center px-6 text-left">
-        <h1 className="text-5xl font-bold text-black md:text-6xl">過去の自分を超えろ</h1>
+        <h1 className="stylish-text text-5xl text-black md:text-6xl">
+          過去の自分を超えろ
+        </h1>
         <p className="mt-6 text-xl text-black md:text-2xl">
           練習記録を管理して、計画的に成長を目指しましょう。
         </p>
