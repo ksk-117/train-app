@@ -16,7 +16,7 @@ const LoggedOutHeader: React.FC = () => {
 
         {/* 右側：ナビゲーション */}
         <nav className="flex items-center gap-4">
-          <Link href="/about">
+          <Link href="https://github.com/ksk-117/train-app/blob/main/README.md">
             <span className="text-sm font-medium text-black hover:underline">About</span>
           </Link>
           <Link href="/login">
