@@ -1,5 +1,3 @@
-// pages/index.tsx
-
 import React, { useEffect, useState } from "react";
 import LoggedOutHeader from "../components/Layout/LoggedOutHeader";
 
@@ -35,9 +33,7 @@ export default function HomePage() {
 
       {/* メインコンテンツ */}
       <main className="relative mx-auto flex h-[calc(100vh-80px)] max-w-5xl flex-col items-start justify-center px-6 text-left">
-        <h1 className="stylish-text text-5xl font-bold text-black md:text-6xl">
-          過去の自分を超えろ
-        </h1>
+        <h1 className="text-5xl font-bold text-black md:text-6xl">過去の自分を超えろ</h1>
         <p className="mt-6 text-xl text-black md:text-2xl">
           練習記録を管理して、計画的に成長を目指しましょう。
         </p>
