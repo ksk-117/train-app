@@ -43,13 +43,13 @@ export default function LoginPage() {
 
       {/* 背景画像 */}
       <div
-        className="absolute inset-x-0 bottom-0 -z-10 w-full"
+        className="absolute inset-0 -z-10 w-full"
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: "contain", // ✅ 横幅をすべて表示（引き伸ばさない）
-          backgroundPosition: "bottom", // ✅ 画像の下を画面下に固定
+          backgroundSize: "auto 100%", // 縦の比率を100%維持
+          backgroundPosition: "right bottom", // 右端下端に固定
           backgroundRepeat: "no-repeat",
-          height: "100vh", // ✅ 画面いっぱいにする（高さが足りない場合は空白を残す）
+          height: "100vh",
         }}
       />
 

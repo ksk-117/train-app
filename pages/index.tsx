@@ -1,3 +1,4 @@
+// pages/index.tsx
 import React, { useEffect, useState } from "react";
 import LoggedOutHeader from "../components/Layout/LoggedOutHeader";
 
@@ -21,22 +22,22 @@ export default function HomePage() {
 
       {/* 背景画像 */}
       <div
-        className="absolute inset-x-0 bottom-0 -z-10 w-full"
+        className="absolute inset-0 -z-10 w-full"
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: "contain", // 画像の横幅をすべて表示
-          backgroundPosition: "bottom", // 画像の下端を画面下に固定
+          backgroundSize: "auto 100%", // 縦の比率を100%維持
+          backgroundPosition: "right bottom", // 右端下端に固定
           backgroundRepeat: "no-repeat",
-          height: "100vh", // 画面の高さを確保し、足りない場合は空白を残す
+          height: "100vh",
         }}
       />
 
       {/* メインコンテンツ */}
       <main className="relative mx-auto flex h-[calc(100vh-80px)] max-w-5xl flex-col items-start justify-center px-6 text-left">
-        <h1 className="stylish-text text-5xl text-black md:text-6xl">
+        <h1 className="stylish-text text-5xl text-black drop-shadow-[3px_3px_0px_#ffffff] md:text-6xl">
           過去の自分を超えろ
         </h1>
-        <p className="mt-6 text-xl text-black md:text-2xl">
+        <p className="mt-6 text-xl text-black drop-shadow-[1px_1px_0px_#ffffff] md:text-2xl">
           練習記録を管理して、計画的に成長を目指しましょう。
         </p>
         <button

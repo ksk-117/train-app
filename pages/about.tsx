@@ -22,11 +22,11 @@ export default function AboutPage() {
 
       {/* 背景画像 */}
       <div
-        className="absolute left-0 -z-10 w-full"
+        className="absolute inset-0 -z-10 w-full"
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: "100% auto",
-          backgroundPosition: "bottom",
+          backgroundSize: "auto 100%", // 縦の比率を100%維持
+          backgroundPosition: "right bottom", // 右端下端に固定
           backgroundRepeat: "no-repeat",
           height: "100vh",
         }}

@@ -1,3 +1,4 @@
+// pages/signup.tsx
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -61,19 +62,18 @@ export default function SignUpPage() {
 
       {/* 背景画像 */}
       <div
-        className="absolute inset-x-0 bottom-0 -z-10 w-full"
+        className="absolute inset-0 -z-10 w-full"
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: "contain", // ✅ 横をすべて表示（引き伸ばさない）
-          backgroundPosition: "bottom", // ✅ 画像の下を画面下に固定
+          backgroundSize: "auto 100%", // 縦の比率を100%維持
+          backgroundPosition: "right bottom", // 右端下端に固定
           backgroundRepeat: "no-repeat",
-          height: "100vh", // ✅ 画面いっぱいにする（高さが足りない場合は空白）
+          height: "100vh",
         }}
       />
 
       <main className={`relative mx-auto flex h-[calc(100vh-120px)] max-w-5xl flex-col ${isMobile ? "items-center justify-center text-center" : "items-start justify-center px-6 text-left"}`}>
         <form className="w-full max-w-md rounded-lg bg-white p-6 shadow-md" onSubmit={handleSignUp}>
-          {/* アイコン部分 */}
           <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-gray-100">
             <FaUserPlus className="text-4xl text-gray-600" />
           </div>
