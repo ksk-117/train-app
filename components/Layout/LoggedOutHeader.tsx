@@ -10,7 +10,7 @@ const LoggedOutHeader: React.FC = () => {
       <div className="mx-auto flex max-w-5xl items-center justify-between px-6">
         {/* 左側：ロゴ */}
         <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-black hover:text-gray-700">
-          <FaFire className="text-black" />
+          <FaFire className="text-red-500" />
           Training App
         </Link>
 

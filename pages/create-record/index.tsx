@@ -1,10 +1,11 @@
 // pages/create-record/index.tsx
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { FaPlus, FaTimes } from 'react-icons/fa'; // アイコン
 import LoggedInTaskbar from '../../components/Layout/LoggedInTaskbar';
 import { supabase } from '../../utils/supabaseClient';
 
-type Category = {
+type TrainingMenu = {
   id: number;
   name: string;
   unit: string;
@@ -13,187 +14,200 @@ type Category = {
 export default function CreateRecordPage() {
   const router = useRouter();
   const [date, setDate] = useState('');
-  const [load, setLoad] = useState<number>(1);
+  const [load, setLoad] = useState<number>(5); // 初期値5 (スライダー)
   const [reflection, setReflection] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [categoryIdList, setCategoryIdList] = useState<(number | null)[]>([null]); // 最初は1つのみ
-  const [countList, setCountList] = useState<number[]>([0]); // 最初は1つのみ
-
+  const [trainingMenu, setTrainingMenu] = useState<TrainingMenu[]>([]);
+  const [menuSelections, setMenuSelections] = useState<{ category_id: number | null; count: number }[]>([
+    { category_id: null, count: 0 }, // 初期値を0に変更
+  ]);
+  const [bgImage, setBgImage] = useState('/image/wall.png');
   useEffect(() => {
-    // 認証チェック & カテゴリ取得
-    const checkSessionAndFetchCategories = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+    const checkSessionAndFetchMenu = async () => {
+      const { data: sessionData, error } = await supabase.auth.getSession();
       if (error) {
         console.error('Session fetch error:', error);
         return;
       }
-      if (!session) {
+      if (!sessionData.session) {
         router.push('/login');
         return;
       }
-      // カテゴリ一覧取得
-      const { data: catData } = await supabase.from('categories').select('*');
-      if (catData) {
-        setCategories(catData);
+
+      const { data: menuData } = await supabase.from('training_menu').select('*');
+      if (menuData) {
+        setTrainingMenu(menuData);
       }
     };
-    checkSessionAndFetchCategories();
+    checkSessionAndFetchMenu();
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (!session || error) {
+  
+    const { data: sessionData, error } = await supabase.auth.getSession();
+    if (!sessionData.session || error) {
       alert('セッションがありません。ログインしてください。');
       router.push('/login');
       return;
     }
-
-    // 既存のデータを削除 (日付+user_id)
-    await supabase
+  
+    const userId = sessionData.session.user.id;
+  
+    // training_recordsテーブルに記録を挿入
+    const { data: recordData, error: recordError } = await supabase
       .from('training_records')
-      .delete()
-      .eq('user_id', session.user?.id)
-      .eq('date', date);
-
-    // INSERT用オブジェクト作成 (category_id1, count1, ...)
-    const insertData: any = {
-      user_id: session.user.id,
-      date,
-      load,
-      reflection,
-    };
-
-    for (let i = 0; i < 10; i++) {
-      insertData[`category_id${i + 1}`] = categoryIdList[i] ?? null;
-      insertData[`count${i + 1}`] = countList[i] ?? 0;
+      .insert([{ user_id: userId, date, load, reflection }])
+      .select()
+      .single();
+  
+    if (recordError) {
+      console.error('Insert error:', recordError);
+      alert(recordError.message);
+      return;
     }
-
-    // 新規挿入
-    const { error: insertError } = await supabase.from('training_records').insert([insertData]);
-
-    if (insertError) {
-      console.error('Insert error:', insertError);
-      alert(insertError.message);
-    } else {
-      alert('記録を追加しました');
-      router.push('/view-records');
+  
+    const recordId = recordData.id;
+  
+    // menuSelectionsをデバッグログに出力して確認
+    console.log('menuSelections:', menuSelections);
+  
+    // training_record_detailsに関連データを挿入
+    const detailsData = menuSelections
+      .filter((item) => item.category_id !== null && item.count > 0)  // category_idがnullでないもの、countが0以上のもののみ
+      .map((item) => ({
+        record_id: recordId,
+        category_id: item.category_id!,
+        count: item.count,
+      }));
+  
+    console.log('detailsData:', detailsData); // detailsDataを確認する
+  
+    if (detailsData.length > 0) {
+      const { error: detailsError } = await supabase.from('training_record_details').insert(detailsData); // 修正
+      if (detailsError) {
+        console.error('Insert error:', detailsError);
+        alert(detailsError.message);
+      }
     }
+  
+    alert('記録を追加しました');
+    router.push('/view-records');
   };
 
   return (
-    <div>
+    <div className="relative min-h-screen overflow-hidden">
       <LoggedInTaskbar />
-      <main style={{ maxWidth: 600, margin: '50px auto' }}>
-        <h2>記録作成</h2>
+      <div
+        className="absolute inset-0 -z-10 size-full"
+        style={{
+          backgroundImage: `url(${bgImage})`,
+          backgroundSize: "cover", // 画面全体に表示
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+      <main className="relative mx-auto mt-16 w-full max-w-5xl rounded-lg bg-white p-8 shadow-lg">
+      <h2 className="mb-6 flex items-center justify-center text-center text-2xl font-bold text-black">
+        <FaPlus className="mr-2 text-gray-700" /> {/* アイコン追加 */}
+        記録作成
+      </h2>
+
         <form onSubmit={handleSubmit}>
-          <div>
-            <label>日付</label>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">日付</label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
               required
-              style={{ width: '100%', marginBottom: '10px' }}
+              className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
             />
           </div>
-          <div>
-            <label>練習負荷 (1~10)</label>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">練習負荷</label>
             <input
-              type="number"
+              type="range"
+              min="0"
+              max="10"
               value={load}
               onChange={(e) => setLoad(Number(e.target.value))}
-              min="1"
-              max="10"
-              style={{ width: '100%', marginBottom: '10px' }}
+              className="w-full accent-orange-500"
             />
+            <p className="text-center text-gray-700">{load}</p>
           </div>
-          <hr />
 
-          {categoryIdList.map((categoryId, index) => (
-            <div key={index} style={{ border: '1px solid #ddd', padding: '10px', marginBottom: '10px' }}>
-              <h4>メニュー {index + 1}</h4>
-              <div>
-                <label>カテゴリ</label>
-                <select
-                  value={categoryId ?? ''}
-                  onChange={(e) => {
-                    const newCategoryIds = [...categoryIdList];
-                    newCategoryIds[index] = e.target.value ? Number(e.target.value) : null;
-                    setCategoryIdList(newCategoryIds);
-                  }}
-                  style={{ width: '100%', marginBottom: '10px' }}
-                >
-                  <option value="">選択してください</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name} ({cat.unit})
-                    </option>
-                  ))}
-                </select>
+          <hr className="my-4" />
+
+          {menuSelections.map((menu, index) => (
+            <div key={index} className="relative mb-4 rounded border p-4 shadow-sm">
+              {/* 削除ボタン (赤✘) */}
+              <button
+                type="button"
+                onClick={() => setMenuSelections(menuSelections.filter((_, i) => i !== index))}
+                className="absolute right-2 top-2 text-red-500 hover:text-red-700"
+              >
+                <FaTimes />
+              </button>
+
+              <h4 className="mb-2 font-medium">メニュー {index + 1}</h4>
+              <div className="flex gap-4">
+                <div className="w-2/3">
+                  <label className="block text-sm font-medium text-gray-700">練習メニュー</label>
+                  <select
+                    value={menu.category_id ?? ''}
+                    onChange={(e) => {
+                      const newMenuSelections = [...menuSelections];
+                      newMenuSelections[index].category_id = e.target.value ? Number(e.target.value) : null;
+                      setMenuSelections(newMenuSelections);
+                    }}
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                  >
+                    <option value="">選択してください</option>
+                    {trainingMenu.map((menu) => (
+                      <option key={menu.id} value={menu.id}>
+                        {menu.name} ({menu.unit})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="w-1/3">
+                  <label className="block text-sm font-medium text-gray-700">回数</label>
+                  <input
+                    type="number"
+                    value={menu.count}
+                    onChange={(e) => {
+                      const newMenuSelections = [...menuSelections];
+                      newMenuSelections[index].count = e.target.value ? Number(e.target.value) : 0;
+                      setMenuSelections(newMenuSelections);
+                    }}
+                    className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                    min="0"
+                  />
+                </div>
               </div>
-              <div>
-                <label>回数</label>
-                <input
-                  type="number"
-                  value={countList[index]}
-                  onChange={(e) => {
-                    const newCounts = [...countList];
-                    newCounts[index] = Number(e.target.value);
-                    setCountList(newCounts);
-                  }}
-                  style={{ width: '100%', marginBottom: '10px' }}
-                  min="0"
-                />
-              </div>
-              {categoryIdList.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCategoryIdList(categoryIdList.filter((_, i) => i !== index));
-                    setCountList(countList.filter((_, i) => i !== index));
-                  }}
-                  style={{ marginBottom: '10px' }}
-                >
-                  削除
-                </button>
-              )}
             </div>
           ))}
 
-          {categoryIdList.length < 10 && (
-            <button
-              type="button"
-              onClick={() => {
-                if (categories.length === 0) return;
-                setCategoryIdList([...categoryIdList, categories[0]?.id || null]);
-                setCountList([...countList, 0]);
-              }}
-              style={{ marginBottom: '10px' }}
-            >
-              + 追加
-            </button>
-          )}
-
-          <hr />
-          <div>
-            <label>反省・メモ</label>
+          <button
+            type="button"
+            onClick={() => setMenuSelections([...menuSelections, { category_id: null, count: 0 }])}
+            className="mb-4 flex items-center gap-2 rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+          >
+            <FaPlus /> メニューを追加
+          </button>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">反省・メモ</label>
             <textarea
               value={reflection}
               onChange={(e) => setReflection(e.target.value)}
-              style={{ width: '100%', marginBottom: '10px', height: '100px' }}
+              className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+              rows={3}
             />
           </div>
-
-          <button type="submit">登録</button>
+          <button type="submit" className="w-full rounded-md bg-blue-500 px-6 py-3 text-lg font-bold text-white shadow-md hover:bg-blue-600">
+            記録を保存
+          </button>
         </form>
       </main>
     </div>
