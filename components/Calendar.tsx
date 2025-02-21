@@ -55,6 +55,9 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
           key={dateString}
           onClick={() => router.push(`/edit-record/${dateString}`)}
           style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
             width: '40px',
             height: '40px',
             textAlign: 'center',
@@ -63,6 +66,7 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
             backgroundColor: backgroundColor,
             cursor: 'pointer',
             fontWeight: 'bold',
+            margin: 'auto', // 中央に配置
           }}
         >
           {day}
@@ -80,9 +84,10 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
         background: '#fff',
         padding: '20px',
         borderRadius: '10px',
-        maxWidth: '320px', // カレンダーの最大幅を制限
+        maxWidth: '100%', // カレンダーの最大幅を100%に設定
         margin: '0 auto', // 中央配置
         overflow: 'hidden', // レイアウト崩れ防止
+        width: '100%', // 横幅を調整
       }}
     >
       {/* 月・年選択 */}
@@ -115,8 +120,10 @@ const Calendar: React.FC<CalendarProps> = ({ records }) => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(7, minmax(40px, 1fr))', // 7列を等間隔に
+          gridTemplateColumns: 'repeat(7, 1fr)', // 7列を等間隔に
           gap: '5px',
+          maxWidth: '100%',
+          overflowX: 'auto', // 横にスクロールできるように
         }}
       >
         {/* 曜日ヘッダー */}
