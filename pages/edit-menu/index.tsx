@@ -1,4 +1,4 @@
-// pages/settings/index.tsx
+// pages/edit-menu/index.tsx
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
