@@ -3,7 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { supabase } from "../../utils/supabaseClient";
 import { useRouter } from "next/router";
-import { FaSignOutAlt, FaFire, FaPlus, FaDumbbell, FaEye } from "react-icons/fa"; // アイコンをインポート
+import { FaSignOutAlt, FaFire, FaPlus, FaDumbbell, FaHome } from "react-icons/fa"; // アイコンをインポート
 
 const LoggedInTaskbar: React.FC = () => {
   const router = useRouter();
@@ -27,37 +27,24 @@ const LoggedInTaskbar: React.FC = () => {
         </Link>
 
         {/* ナビゲーションメニュー */}
-        <div className="hidden items-center space-x-4 sm:flex"> {/* sm（small）以上で表示 */}
-          <Link href="/create-record" className="text-sm font-medium text-white hover:underline">
-            記録を追加
+        <div className="flex items-center space-x-4">
+          <Link href="/home-window" className="flex items-center text-sm font-medium text-white hover:underline">
+            <div className="flex size-6 items-center justify-center rounded-full bg-white">
+              <FaHome className="text-lg text-gray-800" />
+            </div>
+            <span className="ml-2 hidden sm:inline">練習カレンダー</span>
           </Link>
-          <Link href="/edit-menu" className="text-sm font-medium text-white hover:underline">
-            メニュー管理
+          <Link href="/create-record" className="flex items-center text-sm font-medium text-white hover:underline">
+            <div className="flex size-6 items-center justify-center rounded-full bg-white">
+              <FaPlus className="text-lg text-gray-800" />
+            </div>
+            <span className="ml-2 hidden sm:inline">記録を追加</span>
           </Link>
-          <Link href="/view-records" className="text-sm font-medium text-white hover:underline">
-            記録を見る
-          </Link>
-        </div>
-
-        {/* モバイル版のアイコン */}
-        <div className="flex items-center space-x-4 sm:hidden"> {/* sm（small）以下で表示 */}
-          <Link
-            href="/create-record"
-            className="flex size-10 items-center justify-center rounded-full bg-gray-100 text-black"
-          >
-            <FaPlus className="text-lg" />
-          </Link>
-          <Link
-            href="/edit-menu"
-            className="flex size-10 items-center justify-center rounded-full bg-gray-100 text-black"
-          >
-            <FaDumbbell className="text-lg" />
-          </Link>
-          <Link
-            href="/view-records"
-            className="flex size-10 items-center justify-center rounded-full bg-gray-100 text-black"
-          >
-            <FaEye className="text-lg" />
+          <Link href="/edit-menu" className="flex items-center text-sm font-medium text-white hover:underline">
+            <div className="flex size-6 items-center justify-center rounded-full bg-white">
+              <FaDumbbell className="text-lg text-gray-800" />
+            </div>
+            <span className="ml-2 hidden sm:inline">メニュー管理</span>
           </Link>
         </div>
 

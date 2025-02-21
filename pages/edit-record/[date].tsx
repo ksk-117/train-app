@@ -97,7 +97,7 @@ export default function EditRecordPage() {
       alert('保存中にエラーが発生しました: ' + error.message);
     } else {
       alert('記録を更新しました');
-      router.push('/view-records');
+      router.push('/home-window');
     }
   };
 
@@ -168,9 +168,9 @@ export default function EditRecordPage() {
                     <select
                       value={categoryId ?? ''}
                       onChange={(e) => {
-                        const newCategoryIds = [...categoryIdList];
-                        newCategoryIds[index] = e.target.value ? Number(e.target.value) : null;
-                        setCategoryIdList(newCategoryIds);
+                        const newCategoryIdList = [...categoryIdList];
+                        newCategoryIdList[index] = e.target.value ? Number(e.target.value) : null;
+                        setCategoryIdList(newCategoryIdList);
                       }}
                       className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                     >

@@ -113,7 +113,7 @@ export default function CreateRecordPage() {
     }
 
     alert('記録を追加しました');
-    router.push('/view-records');
+    router.push('/home-window');
   };
 
   return (
