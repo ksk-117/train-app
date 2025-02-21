@@ -1,5 +1,4 @@
 // pages/view-records/index.tsx
-
 import React, { useEffect, useState } from 'react';
 import LoggedInTaskbar from '../../components/Layout/LoggedInTaskbar';
 import { supabase } from '../../utils/supabaseClient';
@@ -25,16 +24,19 @@ export default function ViewRecordsPage() {
 
   useEffect(() => {
     const fetchRecords = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error("Session Error: ", sessionError);
+        router.push('/login');
+        return;
+      }
+      
       if (!session) {
         router.push('/login');
         return;
       }
 
-      // 記録一覧取得（新しいテーブル構造に対応）
       const { data, error } = await supabase
         .from('training_records')
         .select(`
@@ -50,7 +52,7 @@ export default function ViewRecordsPage() {
         return;
       }
 
-      // データの整形
+      console.log("Fetched Data: ", data); // データを確認
       const formattedRecords: TrainingRecord[] = data.map((record: any) => ({
         ...record,
         training_details: record.training_record_details.map((detail: any, index: number) => ({
@@ -67,30 +69,34 @@ export default function ViewRecordsPage() {
   }, [router]);
 
   return (
-    <div>
+    <div className="relative min-h-screen bg-gray-100">
       <LoggedInTaskbar />
-      <main className="mx-auto max-w-5xl p-6">
-        <h2 className="text-2xl font-bold">記録一覧</h2>
-        <div className="mt-4 space-y-4">
-          {records.length === 0 ? (
-            <p className="text-gray-500">記録がありません。</p>
-          ) : (
-            records.map((record) => (
-              <div key={record.id} className="rounded-lg border p-4 shadow-md">
-                <p className="text-lg font-bold">{record.date}</p>
+      <main className="mx-auto mt-8 max-w-5xl rounded-lg bg-white p-6 shadow-lg">
+        <h2 className="mb-6 text-center text-3xl font-semibold text-gray-800">記録一覧</h2>
+
+        {/* No records message */}
+        {records.length === 0 ? (
+          <p className="text-center text-gray-500">記録がありません。</p>
+        ) : (
+          // Displaying records
+          <div className="space-y-6">
+            {records.map((record) => (
+              <div key={record.id} className="rounded-lg bg-white p-6 shadow-md">
+                <p className="text-xl font-semibold text-gray-800">{record.date}</p>
                 <p className="text-gray-700">負荷: {record.load}</p>
-                <p className="text-gray-600">{record.reflection || 'メモなし'}</p>
-                <ul className="mt-2 list-disc pl-5 text-gray-800">
+                <p className="mt-2 text-gray-600">{record.reflection || 'メモなし'}</p>
+
+                <ul className="mt-4 list-disc space-y-2 pl-5">
                   {record.training_details?.map((detail, index) => (
-                    <li key={index}>
+                    <li key={index} className="text-gray-800">
                       {detail.category_name}: {detail.count} {detail.unit}
                     </li>
                   ))}
                 </ul>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

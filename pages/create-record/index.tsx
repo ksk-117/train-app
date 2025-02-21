@@ -21,6 +21,7 @@ export default function CreateRecordPage() {
     { category_id: null, count: 0 }, // 初期値を0に変更
   ]);
   const [bgImage, setBgImage] = useState('/image/wall.png');
+
   useEffect(() => {
     const checkSessionAndFetchMenu = async () => {
       const { data: sessionData, error } = await supabase.auth.getSession();
@@ -43,35 +44,58 @@ export default function CreateRecordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+
     const { data: sessionData, error } = await supabase.auth.getSession();
     if (!sessionData.session || error) {
       alert('セッションがありません。ログインしてください。');
       router.push('/login');
       return;
     }
-  
+
     const userId = sessionData.session.user.id;
-  
-    // training_recordsテーブルに記録を挿入
+
+    // 同じ日付の記録が存在していたら削除
+    const { data: existingRecords, error: fetchError } = await supabase
+      .from('training_records')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('date', date);
+
+    if (fetchError) {
+      console.error('Fetch existing records error:', fetchError);
+      return;
+    }
+
+    // 存在するレコードがあれば削除
+    if (existingRecords.length > 0) {
+      const { error: deleteError } = await supabase
+        .from('training_records')
+        .delete()
+        .eq('id', existingRecords[0].id); // 最初のレコードを削除
+
+      if (deleteError) {
+        console.error('Delete existing record error:', deleteError);
+        return;
+      }
+      console.log(`Deleted existing record with ID: ${existingRecords[0].id}`);
+    }
+
+    // 新しい記録を training_records テーブルに挿入
     const { data: recordData, error: recordError } = await supabase
       .from('training_records')
       .insert([{ user_id: userId, date, load, reflection }])
       .select()
       .single();
-  
+
     if (recordError) {
       console.error('Insert error:', recordError);
       alert(recordError.message);
       return;
     }
-  
+
     const recordId = recordData.id;
-  
-    // menuSelectionsをデバッグログに出力して確認
-    console.log('menuSelections:', menuSelections);
-  
-    // training_record_detailsに関連データを挿入
+
+    // training_record_details に関連データを挿入
     const detailsData = menuSelections
       .filter((item) => item.category_id !== null && item.count > 0)  // category_idがnullでないもの、countが0以上のもののみ
       .map((item) => ({
@@ -79,17 +103,15 @@ export default function CreateRecordPage() {
         category_id: item.category_id!,
         count: item.count,
       }));
-  
-    console.log('detailsData:', detailsData); // detailsDataを確認する
-  
+
     if (detailsData.length > 0) {
-      const { error: detailsError } = await supabase.from('training_record_details').insert(detailsData); // 修正
+      const { error: detailsError } = await supabase.from('training_record_details').insert(detailsData);
       if (detailsError) {
         console.error('Insert error:', detailsError);
         alert(detailsError.message);
       }
     }
-  
+
     alert('記録を追加しました');
     router.push('/view-records');
   };
@@ -101,17 +123,17 @@ export default function CreateRecordPage() {
         className="absolute inset-0 -z-10 size-full"
         style={{
           backgroundImage: `url(${bgImage})`,
-          backgroundSize: "cover", // 画面全体に表示
-          backgroundRepeat: "no-repeat",
+          backgroundSize: 'cover', // 画面全体に表示
+          backgroundRepeat: 'no-repeat',
         }}
       />
       <main className="mx-auto max-w-4xl p-8">
-        <div className="relative mx-auto mt-16 w-full max-w-4xl rounded-lg bg-gray-100 p-8 shadow-lg">    
-        <h2 className="mb-6 flex items-center justify-center text-center text-2xl font-bold text-black">
-          <FaPlus className="mr-2 text-gray-700" /> {/* アイコン追加 */}
-          記録作成
-        </h2>
-  
+        <div className="relative mx-auto mt-16 w-full max-w-4xl rounded-lg bg-gray-100 p-8 shadow-lg">
+          <h2 className="mb-6 flex items-center justify-center text-center text-2xl font-bold text-black">
+            <FaPlus className="mr-2 text-gray-700" />
+            記録作成
+          </h2>
+
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">日付</label>
@@ -123,7 +145,7 @@ export default function CreateRecordPage() {
                 className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
               />
             </div>
-  
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">練習負荷</label>
               <input
@@ -136,12 +158,12 @@ export default function CreateRecordPage() {
               />
               <p className="text-center text-gray-700">{load}</p>
             </div>
-  
+
             <hr className="my-4" />
-  
+
             {menuSelections.map((menu, index) => (
               <div key={index} className="relative mb-4 rounded border p-4 shadow-sm">
-                {/* 削除ボタン (赤✘) */}
+                {/* 削除ボタン */}
                 <button
                   type="button"
                   onClick={() => setMenuSelections(menuSelections.filter((_, i) => i !== index))}
@@ -149,7 +171,7 @@ export default function CreateRecordPage() {
                 >
                   <FaTimes />
                 </button>
-  
+
                 <h4 className="mb-2 font-medium">メニュー {index + 1}</h4>
                 <div className="flex gap-4">
                   <div className="w-2/3">
@@ -171,7 +193,7 @@ export default function CreateRecordPage() {
                       ))}
                     </select>
                   </div>
-  
+
                   <div className="w-1/3">
                     <label className="block text-sm font-medium text-gray-700">回数</label>
                     <input
@@ -189,7 +211,7 @@ export default function CreateRecordPage() {
                 </div>
               </div>
             ))}
-  
+
             <button
               type="button"
               onClick={() => setMenuSelections([...menuSelections, { category_id: null, count: 0 }])}
@@ -197,6 +219,7 @@ export default function CreateRecordPage() {
             >
               <FaPlus /> メニューを追加
             </button>
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">反省・メモ</label>
               <textarea
@@ -206,7 +229,11 @@ export default function CreateRecordPage() {
                 rows={3}
               />
             </div>
-            <button type="submit" className="w-full rounded-md bg-blue-500 px-6 py-3 text-lg font-bold text-white shadow-md hover:bg-blue-600">
+
+            <button
+              type="submit"
+              className="w-full rounded-md bg-blue-500 px-6 py-3 text-lg font-bold text-white shadow-md hover:bg-blue-600"
+            >
               記録を保存
             </button>
           </form>
