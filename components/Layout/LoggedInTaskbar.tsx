@@ -43,19 +43,19 @@ const LoggedInTaskbar: React.FC = () => {
         <div className="flex items-center space-x-4 sm:hidden"> {/* sm（small）以下で表示 */}
           <Link
             href="/create-record"
-            className="flex size-10 items-center justify-center rounded-full bg-gray-200 text-black"
+            className="flex size-10 items-center justify-center rounded-full bg-gray-100 text-black"
           >
             <FaPlus className="text-lg" />
           </Link>
           <Link
             href="/edit-menu"
-            className="flex size-10 items-center justify-center rounded-full bg-gray-200 text-black"
+            className="flex size-10 items-center justify-center rounded-full bg-gray-100 text-black"
           >
             <FaDumbbell className="text-lg" />
           </Link>
           <Link
             href="/view-records"
-            className="flex size-10 items-center justify-center rounded-full bg-gray-200 text-black"
+            className="flex size-10 items-center justify-center rounded-full bg-gray-100 text-black"
           >
             <FaEye className="text-lg" />
           </Link>

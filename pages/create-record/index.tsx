@@ -105,110 +105,112 @@ export default function CreateRecordPage() {
           backgroundRepeat: "no-repeat",
         }}
       />
-      <main className="relative mx-auto mt-16 w-full max-w-5xl rounded-lg bg-white p-8 shadow-lg">
-      <h2 className="mb-6 flex items-center justify-center text-center text-2xl font-bold text-black">
-        <FaPlus className="mr-2 text-gray-700" /> {/* アイコン追加 */}
-        記録作成
-      </h2>
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">日付</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              required
-              className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-            />
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">練習負荷</label>
-            <input
-              type="range"
-              min="0"
-              max="10"
-              value={load}
-              onChange={(e) => setLoad(Number(e.target.value))}
-              className="w-full accent-orange-500"
-            />
-            <p className="text-center text-gray-700">{load}</p>
-          </div>
-
-          <hr className="my-4" />
-
-          {menuSelections.map((menu, index) => (
-            <div key={index} className="relative mb-4 rounded border p-4 shadow-sm">
-              {/* 削除ボタン (赤✘) */}
-              <button
-                type="button"
-                onClick={() => setMenuSelections(menuSelections.filter((_, i) => i !== index))}
-                className="absolute right-2 top-2 text-red-500 hover:text-red-700"
-              >
-                <FaTimes />
-              </button>
-
-              <h4 className="mb-2 font-medium">メニュー {index + 1}</h4>
-              <div className="flex gap-4">
-                <div className="w-2/3">
-                  <label className="block text-sm font-medium text-gray-700">練習メニュー</label>
-                  <select
-                    value={menu.category_id ?? ''}
-                    onChange={(e) => {
-                      const newMenuSelections = [...menuSelections];
-                      newMenuSelections[index].category_id = e.target.value ? Number(e.target.value) : null;
-                      setMenuSelections(newMenuSelections);
-                    }}
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-                  >
-                    <option value="">選択してください</option>
-                    {trainingMenu.map((menu) => (
-                      <option key={menu.id} value={menu.id}>
-                        {menu.name} ({menu.unit})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="w-1/3">
-                  <label className="block text-sm font-medium text-gray-700">回数</label>
-                  <input
-                    type="number"
-                    value={menu.count}
-                    onChange={(e) => {
-                      const newMenuSelections = [...menuSelections];
-                      newMenuSelections[index].count = e.target.value ? Number(e.target.value) : 0;
-                      setMenuSelections(newMenuSelections);
-                    }}
-                    className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-                    min="0"
-                  />
+      <main className="mx-auto max-w-4xl p-8">
+        <div className="relative mx-auto mt-16 w-full max-w-4xl rounded-lg bg-gray-100 p-8 shadow-lg">    
+        <h2 className="mb-6 flex items-center justify-center text-center text-2xl font-bold text-black">
+          <FaPlus className="mr-2 text-gray-700" /> {/* アイコン追加 */}
+          記録作成
+        </h2>
+  
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">日付</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+              />
+            </div>
+  
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">練習負荷</label>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                value={load}
+                onChange={(e) => setLoad(Number(e.target.value))}
+                className="w-full accent-orange-500"
+              />
+              <p className="text-center text-gray-700">{load}</p>
+            </div>
+  
+            <hr className="my-4" />
+  
+            {menuSelections.map((menu, index) => (
+              <div key={index} className="relative mb-4 rounded border p-4 shadow-sm">
+                {/* 削除ボタン (赤✘) */}
+                <button
+                  type="button"
+                  onClick={() => setMenuSelections(menuSelections.filter((_, i) => i !== index))}
+                  className="absolute right-2 top-2 text-red-500 hover:text-red-700"
+                >
+                  <FaTimes />
+                </button>
+  
+                <h4 className="mb-2 font-medium">メニュー {index + 1}</h4>
+                <div className="flex gap-4">
+                  <div className="w-2/3">
+                    <label className="block text-sm font-medium text-gray-700">練習メニュー</label>
+                    <select
+                      value={menu.category_id ?? ''}
+                      onChange={(e) => {
+                        const newMenuSelections = [...menuSelections];
+                        newMenuSelections[index].category_id = e.target.value ? Number(e.target.value) : null;
+                        setMenuSelections(newMenuSelections);
+                      }}
+                      className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                    >
+                      <option value="">選択してください</option>
+                      {trainingMenu.map((menu) => (
+                        <option key={menu.id} value={menu.id}>
+                          {menu.name} ({menu.unit})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+  
+                  <div className="w-1/3">
+                    <label className="block text-sm font-medium text-gray-700">回数</label>
+                    <input
+                      type="number"
+                      value={menu.count}
+                      onChange={(e) => {
+                        const newMenuSelections = [...menuSelections];
+                        newMenuSelections[index].count = e.target.value ? Number(e.target.value) : 0;
+                        setMenuSelections(newMenuSelections);
+                      }}
+                      className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                      min="0"
+                    />
+                  </div>
                 </div>
               </div>
+            ))}
+  
+            <button
+              type="button"
+              onClick={() => setMenuSelections([...menuSelections, { category_id: null, count: 0 }])}
+              className="mb-4 flex items-center gap-2 rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+            >
+              <FaPlus /> メニューを追加
+            </button>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">反省・メモ</label>
+              <textarea
+                value={reflection}
+                onChange={(e) => setReflection(e.target.value)}
+                className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                rows={3}
+              />
             </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={() => setMenuSelections([...menuSelections, { category_id: null, count: 0 }])}
-            className="mb-4 flex items-center gap-2 rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-          >
-            <FaPlus /> メニューを追加
-          </button>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">反省・メモ</label>
-            <textarea
-              value={reflection}
-              onChange={(e) => setReflection(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-              rows={3}
-            />
-          </div>
-          <button type="submit" className="w-full rounded-md bg-blue-500 px-6 py-3 text-lg font-bold text-white shadow-md hover:bg-blue-600">
-            記録を保存
-          </button>
-        </form>
+            <button type="submit" className="w-full rounded-md bg-blue-500 px-6 py-3 text-lg font-bold text-white shadow-md hover:bg-blue-600">
+              記録を保存
+            </button>
+          </form>
+        </div>
       </main>
     </div>
   );
