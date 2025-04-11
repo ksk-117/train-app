@@ -2,17 +2,39 @@ name: Keep Supabase Active
 
 on:
   schedule:
-    - cron: '00 0 * * *'  # 日本時間の9時 (UTC 00:00)
+    - cron: '0 0 * * *' # 毎日午前0時（UTC）に実行
+  workflow_dispatch: # 手動実行も可能
 
 jobs:
-  keep_alive:
+  ping:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Send request to keep Supabase active
-        run: |
-          curl -X GET "$SUPABASE_API_URL" \
-          -H "apikey: $SUPABASE_ANON_KEY"
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Supabase Client
+        run: npm install @supabase/supabase-js --force
+
+      - name: Ping Supabase
         env:
-          SUPABASE_API_URL: ${{ secrets.SUPABASE_API_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node -e "
+          const { createClient } = require('@supabase/supabase-js');
+          const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+          (async () => {
+            const { data, error } = await supabase.from('your_table').select('*').limit(1);
+            if (error) {
+              console.error('Error pinging Supabase:', error);
+              process.exit(1);
+            } else {
+              console.log('Supabase ping successful:', data);
+            }
+          })();
+          "
